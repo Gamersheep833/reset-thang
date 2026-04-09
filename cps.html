@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CPS Counter</title>
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      font-family: Arial, sans-serif;
+      background: #111827;
+      color: #e5e7eb;
+    }
+
+    .card {
+      width: min(92vw, 500px);
+      background: #1f2937;
+      border: 1px solid #374151;
+      border-radius: 14px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 1.5rem;
+    }
+
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin: 14px 0 18px;
+      flex-wrap: wrap;
+    }
+
+    .stat {
+      background: #111827;
+      border: 1px solid #374151;
+      border-radius: 10px;
+      padding: 10px 14px;
+      min-width: 120px;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: #9ca3af;
+    }
+
+    .stat-value {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    #clickArea {
+      width: 100%;
+      border: none;
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      background: #2563eb;
+      color: #ffffff;
+      cursor: pointer;
+      transition: transform 0.05s ease, background 0.15s ease;
+    }
+
+    #clickArea:active {
+      transform: scale(0.99);
+      background: #1d4ed8;
+    }
+
+    .controls {
+      margin-top: 12px;
+    }
+
+    #resetBtn {
+      border: 1px solid #4b5563;
+      border-radius: 10px;
+      padding: 10px 14px;
+      background: #111827;
+      color: #e5e7eb;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>CPS Counter</h1>
+    <p>Click as fast as you can.</p>
+
+    <section class="stats">
+      <div class="stat">
+        <div class="stat-label">Current CPS</div>
+        <div class="stat-value" id="cpsValue">0.00</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Total Clicks</div>
+        <div class="stat-value" id="totalValue">0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Best CPS</div>
+        <div class="stat-value" id="bestValue">0.00</div>
+      </div>
+    </section>
+
+    <button id="clickArea" type="button">Click Me</button>
+    <div class="controls">
+      <button id="resetBtn" type="button">Reset</button>
+    </div>
+  </main>
+
+  <script>
+    const clickArea = document.getElementById("clickArea");
+    const resetBtn = document.getElementById("resetBtn");
+    const cpsValue = document.getElementById("cpsValue");
+    const totalValue = document.getElementById("totalValue");
+    const bestValue = document.getElementById("bestValue");
+
+    let clickTimestamps = [];
+    let totalClicks = 0;
+    let bestCps = 0;
+
+    function updateStats() {
+      const now = performance.now();
+      const oneSecondAgo = now - 1000;
+
+      // Keep only clicks from the last 1 second.
+      clickTimestamps = clickTimestamps.filter((timestamp) => timestamp >= oneSecondAgo);
+
+      const currentCps = clickTimestamps.length;
+      if (currentCps > bestCps) {
+        bestCps = currentCps;
+      }
+
+      cpsValue.textContent = currentCps.toFixed(2);
+      totalValue.textContent = String(totalClicks);
+      bestValue.textContent = bestCps.toFixed(2);
+    }
+
+    clickArea.addEventListener("click", () => {
+      totalClicks += 1;
+      clickTimestamps.push(performance.now());
+      updateStats();
+    });
+
+    resetBtn.addEventListener("click", () => {
+      clickTimestamps = [];
+      totalClicks = 0;
+      bestCps = 0;
+      updateStats();
+    });
+
+    // Update frequently so CPS decays smoothly over time.
+    setInterval(updateStats, 50);
+    updateStats();
+  </script>
+</body>
+</html>
